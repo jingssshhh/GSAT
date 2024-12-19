@@ -1,0 +1,9 @@
+FROM miniconda：
+
+RUN conda install 
+
+RUN conda install xxxxx
+RUN pip install xxx
+
+RUN apt isntall xx
+

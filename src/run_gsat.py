@@ -230,12 +230,16 @@ class GSAT(nn.Module):
         return desc, att_auroc, precision_at_k, clf_acc, clf_roc
 
     def get_precision_at_k(self, att, exp_labels, k, batch, edge_index):
-        precision_at_k = []
+        precision_at_k = []        
         for i in range(batch.max()+1):
             nodes_for_graph_i = batch == i
             edges_for_graph_i = nodes_for_graph_i[edge_index[0]] & nodes_for_graph_i[edge_index[1]]
+            exp_labels = exp_labels.to("cuda:0")
             labels_for_graph_i = exp_labels[edges_for_graph_i]
+            att = att.to("cuda:0")
             mask_log_logits_for_graph_i = att[edges_for_graph_i]
+            if mask_log_logits_for_graph_i.is_cuda:
+                mask_log_logits_for_graph_i = mask_log_logits_for_graph_i.cpu()
             precision_at_k.append(labels_for_graph_i[np.argsort(-mask_log_logits_for_graph_i)[:k]].sum().item() / k)
         return precision_at_k
 
@@ -252,6 +256,7 @@ class GSAT(nn.Module):
             else:
                 candidate_set = np.nonzero(y_dist == each_class)[0]
             idx = np.random.choice(candidate_set, self.num_viz_samples, replace=False)
+
             res.append((idx, tag))
         return res
 
